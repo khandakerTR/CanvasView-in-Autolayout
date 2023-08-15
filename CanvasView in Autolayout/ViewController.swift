@@ -9,8 +9,6 @@ import UIKit
 
 enum canvasRatio: String, CaseIterable {
     case oneOne = "1:1"
-    case oneTwo = "1:2"
-    case twoOne = "2:1"
     case nineSixteen = "9:16"
     case sixteenNine = "16:9"
     case fourThree = "4:3"
@@ -20,21 +18,53 @@ enum canvasRatio: String, CaseIterable {
     }
 }
 
-
-class ViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
-
-    @IBOutlet weak var imageView: UIImageView!
+class ViewController: UIViewController {
     
-    @IBOutlet weak var imageViewAspectRatio: NSLayoutConstraint!
+    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var sixteenNineRatio: NSLayoutConstraint!
+    @IBOutlet weak var oneOneRatio: NSLayoutConstraint!
+    @IBOutlet weak var nineSixteen: NSLayoutConstraint!
+    @IBOutlet weak var fourThreeRatio: NSLayoutConstraint!
+    
+    var currentRatio = NSLayoutConstraint()
+    var isLanscapeImage = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
         
-        
-        
+        currentRatio = nineSixteen
     }
+    
+    @IBAction func changeImage(_ sender: UIButton) {
+        isLanscapeImage = !isLanscapeImage
+        imageView.image = isLanscapeImage ? UIImage(named: "image2") : UIImage(named: "image1")
+    }
+    
+    func changeCanvasSize(by ratio: canvasRatio) {
+        
+        self.currentRatio.priority = UILayoutPriority(100)
+        UIView.animate(withDuration: 0.5) {
+            switch ratio {
+            case .oneOne:
+                self.currentRatio = self.oneOneRatio
+            case .nineSixteen:
+                self.currentRatio = self.nineSixteen
+                
+            case .sixteenNine:
+                self.currentRatio = self.sixteenNineRatio
+                
+            default:
+                self.currentRatio =  self.fourThreeRatio
+            }
+            self.currentRatio.priority = UILayoutPriority(1000)
+            self.view.layoutIfNeeded()
+        }
+    }
+}
 
+
+extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         canvasRatio.allCases.count
     }
@@ -46,37 +76,25 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         cell.ratioLabel.text = canvasRatio.allCases[indexPath.item].stringValue
         return cell
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedCanvas = canvasRatio.allCases[indexPath.item]
         changeCanvasSize(by: selectedCanvas)
-        
     }
     
-    func changeCanvasSize(by ratio: canvasRatio) {
-        var currentRatio = 0.0
-        switch ratio {
-        case .oneOne:
-            currentRatio = 1.0
-        case .nineSixteen:
-            currentRatio = 9/16
-            
-        case .sixteenNine:
-            currentRatio = 16/9
-            
-        default:
-            currentRatio = 5/4
-            
-        }
-        UIView.animate(withDuration: 2.0) {
-            self.imageViewAspectRatio.constant = currentRatio
-            self.view.layoutIfNeeded()
-        }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 50, height: collectionView.bounds.height)
     }
 }
 
-
+//MARK: - CollectionViewCell
 class CustomCVCell: UICollectionViewCell {
     
     @IBOutlet weak var ratioLabel: UILabel!
+    
+    override var isSelected: Bool {
+        didSet {
+            self.backgroundColor = isSelected ? .purple : .clear
+        }
+    }
 }
